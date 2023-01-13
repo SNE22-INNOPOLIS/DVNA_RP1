@@ -53,6 +53,16 @@ pipeline {
       }
     }
     
+    // Vault Implementation
+    stage('Fetch Credential'){
+   withCredentials([vaultString(credentialsId: 'Vault_MySQL_DB', variable: 'env')]) {
+    // some block
+        sh 'echo $env'
+        sh 'echo $password'
+        }
+    }
+    
+    
     // Testing the container run-time
     stage('Test') {
       steps {
@@ -60,6 +70,8 @@ pipeline {
         echo 'application started'
       }
     }
+     
+    
     
     // Security scan using Snyk
     stage('Security Scan') {
