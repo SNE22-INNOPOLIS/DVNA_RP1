@@ -6,15 +6,10 @@ pipeline {
     stage('Send Start Alert') {
       steps {
         script {
-          // Get the user who launched the job
-          //wrap([$class: 'BuildUser']) {
-          //  def user = env.BUILD_USER
-          //}
-          // Send start notification
           telegramSend(
-            token: '5451305173:AAGSmRL_518hBsPx3N_Zih_cy0oeMbZhpyI',
-            chatId: '-688306623',
-            message: "The job Deploy to Production has started and is currently running."
+              token: 'Telegram_Token',
+              chatId: env.Telegram_ChatID,
+              message: "The job Deploy to Production has started and is currently running."
           )
         }
       }
@@ -23,10 +18,10 @@ pipeline {
     stage('Install') {
       steps {
         echo 'Uninstall any older docker versions before attempting to install a new version'
-        sh 'sudo apt-get remove docker docker-engine docker.io containerd runc'
+        sh 'sudo apt-get remove docker docker-engine docker.io containerd runc | true'
 
         echo 'Update the apt package index and install packages'
-        sh 'sudo apt-get update'
+        sh 'sudo apt-get update | true'
         sh 'sudo apt-get install \
               ca-certificates \
               curl \
@@ -36,7 +31,7 @@ pipeline {
         echo 'Add Docker’s official GPG key'
         sh '''
           sudo mkdir -p /etc/apt/keyrings
-          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+          curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg | true
         '''
 
         echo 'Setting set up the docker repository'
@@ -45,10 +40,10 @@ pipeline {
               $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null'
 
         echo 'Update the apt package index'
-        sh 'sudo apt-get update'
+        sh 'sudo apt-get update | true'
 
         echo 'Install Docker Engine, containerd, and Docker Compose'
-        sh 'sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin'
+        sh 'yes | sudo apt-get install docker-ce docker-ce-cli containerd.io docker-compose-plugin'
       }
     }
 
@@ -57,6 +52,8 @@ pipeline {
       steps {
         echo 'removing previous container version>>>'
         sh 'docker-compose -f docker-compose-deploy.yml down | true'
+        sh 'docker rm -f dvna | true'
+        sh 'docker rmi -f appsecco/dvna:sqlite | true'
         sh 'sudo docker image prune -a'
         echo 'old and running version of container was successfully removed!'
       }
@@ -72,7 +69,7 @@ pipeline {
       }
     }
 
-    // Vault Implementation
+ // Vault Implementation
     stage('Fetch Cred'){
       steps {
         withCredentials([vaultString(credentialsId: 'Vault_MySQL_DB', variable: 'env')]) {
@@ -85,10 +82,11 @@ pipeline {
     stage('Deploy') {
       steps {
         echo 'attempting container run on port 9090>>>'
-        sh 'yes | docker-compose -f docker-compose-deploy.yml up -d'
-        echo 'containers now running!'
-        echo 'container was successfully deployed to Production server!!!'
-        echo 'you can now access the application on http://10.1.1.35:9090 >>>'
+      //  sh 'yes | docker-compose -f docker-compose-deploy.yml up -d'
+        sh 'docker run --name dvna -p 9090:9090 -d appsecco/dvna:sqlite'
+        echo 'containers now deployed and running!'
+        echo 'container was successfully deployed to test server!!!'
+        echo 'you can now access the application in production through the firewall on http://10.1.1.40 >>>'
       }
     }
   }
@@ -99,8 +97,8 @@ pipeline {
             script {
                 // Send success notification
                 telegramSend(
-                    token: '5451305173:AAGSmRL_518hBsPx3N_Zih_cy0oeMbZhpyI',
-                    chatId: '-688306623',
+                    token: 'Telegram_Token',
+                    chatId: env.Telegram_ChatID,
                     message: "The job Deploy to Production has completed successfully."
                 )
             }
@@ -111,8 +109,8 @@ pipeline {
                 def failureCause = currentBuild.getResult().toString()
                 // Send failure notification
                 telegramSend(
-                    token: '5451305173:AAGSmRL_518hBsPx3N_Zih_cy0oeMbZhpyI',
-                    chatId: '-688306623',
+                    token: 'Telegram_Token',
+                    chatId: env.Telegram_ChatID,
                     message: "The job Deploy to Production has failed due to ${failureCause}."
                 )
             }
