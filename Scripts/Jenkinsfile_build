@@ -100,7 +100,7 @@ pipeline {
         echo 'now pushing working image to dockerhub...'
         
         sh '''
-        docker login -u env.DOCKER_USERNAME -p env.DOCKER_PASSWORD docker.io
+        docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io
         docker tag dvna-sne22-rp1 rp1sne22/dvna-sne22-rp1:1.4
         docker push rp1sne22/dvna-sne22-rp1:1.4
         '''
