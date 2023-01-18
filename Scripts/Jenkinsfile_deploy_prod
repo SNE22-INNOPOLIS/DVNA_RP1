@@ -52,6 +52,8 @@ pipeline {
       steps {
         echo 'removing previous container version>>>'
         sh 'docker-compose -f docker-compose-deploy.yml down | true'
+        sh 'docker rm -f dvna | true'
+        sh 'docker rmi -f appsecco/dvna:sqlite | true'
         sh 'sudo docker image prune -a'
         echo 'old and running version of container was successfully removed!'
       }
@@ -67,7 +69,7 @@ pipeline {
       }
     }
 
-   /* // Vault Implementation
+ // Vault Implementation
     stage('Fetch Cred'){
       steps {
         withCredentials([vaultString(credentialsId: 'Vault_MySQL_DB', variable: 'env')]) {
@@ -75,7 +77,7 @@ pipeline {
         }
       }
     }
-*/
+
     // Deploying the container to production environment (webserver machine)
     stage('Deploy') {
       steps {
@@ -84,7 +86,7 @@ pipeline {
         sh 'docker run --name dvna -p 9090:9090 -d appsecco/dvna:sqlite'
         echo 'containers now deployed and running!'
         echo 'container was successfully deployed to test server!!!'
-        echo 'you can now test the application on http://10.1.1.40:9090 >>>'
+        echo 'you can now access the application in production through the firewall on http://10.1.1.40 >>>'
       }
     }
   }
