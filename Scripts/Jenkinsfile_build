@@ -102,7 +102,7 @@ pipeline {
         sh 'sudo docker-compose -f docker-compose-build.yml down'
         echo 'removed container runtime'
         sh 'docker image prune -a'
-        echo 'removed docker image'
+        echo 'removed docker image!!!'
       } 
     } 
   }
