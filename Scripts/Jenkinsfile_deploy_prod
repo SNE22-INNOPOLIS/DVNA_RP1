@@ -58,7 +58,7 @@ pipeline {
         echo 'old and running version of container was successfully removed!'
       }
     }
-
+/*
     // Pulling the image from the container repository
     stage('Pull') {
       steps {
@@ -68,7 +68,7 @@ pipeline {
         echo 'pulling successfull!'
       }
     }
-
+*/
  // Vault Implementation
     stage('Fetch Cred'){
       steps {
