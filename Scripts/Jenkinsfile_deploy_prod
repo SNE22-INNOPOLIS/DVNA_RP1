@@ -1,6 +1,19 @@
+def secrets = [
+        [path: '/secrets/creds/jenkins-script', secretValues: [
+            [envVar: 'TELEGRAM_CHAT_ID', vaultKey: 'Telegram_chatID'],
+            [envVar: 'TELEGRAM_TOKEN', vaultKey: 'Telegram_token'],
+            [envVar: 'DOCKER_USERNAME', vaultKey:'doc_username'],
+            [envVar: 'DOCKER_PASSWORD', vaultKey:'doc_password']]],
+        
+    ]
+
+def configuration = [vaultUrl: 'http://10.1.1.68:8200',
+                         vaultCredentialId: 'vault-jenkins-hashicorp-approle']
+
+
 pipeline {
   agent {label 'Production_Server'}
-
+  
   stages {
 
     stage('Send Start Alert') {
