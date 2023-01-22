@@ -87,7 +87,7 @@ pipeline {
         echo 'old and running version of container was successfully removed!'
       }
     }
-
+/*
     // Pulling the image from the container repository
     stage('Pull') {
       steps {
@@ -97,7 +97,7 @@ pipeline {
         echo 'pulling successfull!'
       }
     }
-
+*/
     // Deploying the container to production environment (webserver machine)
     stage('Deploy') {
       steps {
@@ -128,8 +128,8 @@ pipeline {
                 def failureCause = currentBuild.getResult().toString()
                 // Send failure notification
                 telegramSend(
-                    token: '5451305173:AAGSmRL_518hBsPx3N_Zih_cy0oeMbZhpyI',
-                    chatId: '-688306623',
+                    token: env.TELEGRAM_TOKEN,
+                    chatId: env.TELEGRAM_CHAT_ID,
                     message: "The job Deploy to Production has failed due to ${failureCause}."
                 )
             }
