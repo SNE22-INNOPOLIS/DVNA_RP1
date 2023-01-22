@@ -33,7 +33,7 @@ pipeline {
         script {
           telegramSend(
             token: env.TELEGRAM_TOKEN,
-            chatId: env.TELEGRAM_CHdoc_usernameAT_ID,
+            chatId: env.TELEGRAM_CHAT_ID,
             message: "The job RP1 Build and Test has started and is currently running."
           )
         }
@@ -136,6 +136,7 @@ pipeline {
     
     failure {
       script {
+        
         // Get the cause of the failure
         def failureCause = currentBuild.getResult().toString()
         // Send failure notification
