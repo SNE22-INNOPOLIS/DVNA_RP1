@@ -1,7 +1,33 @@
+def secrets = [
+        [path: '/secrets/creds/jenkins-script', secretValues: [
+            [envVar: 'TELEGRAM_CHAT_ID', vaultKey: 'Telegram_chatID'],
+            [envVar: 'TELEGRAM_TOKEN', vaultKey: 'Telegram_token'],
+            [envVar: 'DOCKER_USERNAME', vaultKey:'doc_username'],
+            [envVar: 'DOCKER_PASSWORD', vaultKey:'doc_password']]],
+        
+    ]
+
+def configuration = [vaultUrl: 'http://10.1.1.68:8200',
+                         vaultCredentialId: 'vault-jenkins-hashicorp-approle']
+
+
 pipeline {
   agent {label 'webserver'}
 
   stages {
+
+    stage('Vault') {
+       steps{
+           withVault([configuration: configuration, vaultSecrets: secrets]) {
+               sh '''
+                  echo $TELEGRAM_TOKEN
+                  echo $TELEGRAM_CHAT_ID
+                  echo $DOCKER_USERNAME
+                  echo $DOCKER_PASSWORD
+                  '''
+           }
+        }
+    }
 
     stage('Send Start Alert') {
       steps {
@@ -12,8 +38,8 @@ pipeline {
           //}
           // Send start notification
           telegramSend(
-            token: '5451305173:AAGSmRL_518hBsPx3N_Zih_cy0oeMbZhpyI',
-            chatId: '-688306623',
+            token: env.TELEGRAM_TOKEN,
+            chatId: env.TELEGRAM_CHAT_ID,
             message: "The job Deploy to test environment has started and is currently running."
           )
         }
@@ -32,15 +58,17 @@ pipeline {
       }
     }
 
+/*
     // Pulling the image from the container repository
     stage('Pull') {
       steps {
         echo 'pulling container image from repository>>>'
-        sh 'docker login -u rp1sne22 -p dckr_pat_gi6co2PnC5xTtoElVINANoHAAt4 docker.io'
+        sh 'docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD docker.io'
         sh 'docker pull rp1sne22/dvna-sne22-rp1:1.4'
         echo 'pulling successfull!'
       }
     }
+*/
 
     // Starting the container in test environment (webserver_test machine)
     stage('Deploy') {
@@ -75,8 +103,8 @@ pipeline {
             script {
                 // Send success notification
                 telegramSend(
-                    token: '5451305173:AAGSmRL_518hBsPx3N_Zih_cy0oeMbZhpyI',
-                    chatId: '-688306623',
+                    token: env.TELEGRAM_TOKEN,
+                    chatId: env.TELEGRAM_CHAT_ID,
                     message: "The job Deploy to test environment has completed successfully."
                 )
             }
@@ -87,8 +115,8 @@ pipeline {
                 def failureCause = currentBuild.getResult().toString()
                 // Send failure notification
                 telegramSend(
-                    token: '5451305173:AAGSmRL_518hBsPx3N_Zih_cy0oeMbZhpyI',
-                    chatId: '-688306623',
+                    token: env.TELEGRAM_TOKEN,
+                    chatId: env.TELEGRAM_CHAT_ID,
                     message: "The job Deploy to test environment has failed due to ${failureCause}."
                 )
             }
